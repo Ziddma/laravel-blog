@@ -43,7 +43,7 @@ services:
         command: redis-server --appendonly yes --requirepass "${REDIS_PASSWORD}"
         ports:
             - 6379:6379
-            
+
     # Node Service
     node:
         build:
@@ -54,7 +54,6 @@ services:
         working_dir: /var/www
         volumes:
             - .:/var/www
-            - ./var/www/node_modules
         tty: true
 
 volumes:
