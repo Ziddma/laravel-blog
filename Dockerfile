@@ -25,16 +25,14 @@ ENTRYPOINT ["docker/entrypoint.sh"]
 # Node Service
 FROM node:18-alpine as node
 
-
 RUN corepack enable \
     && corepack prepare yarn@4.5.1 --activate
-
 
 WORKDIR /var/www
 
 COPY . .
 
-RUN npm install --global cross-env && npm install
+RUN yarn install --frozen-lockfile && yarn build
 
-VOLUME /usr/src/app/node_modules
+VOLUME /var/www/node_modules
 
