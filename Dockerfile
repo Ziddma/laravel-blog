@@ -1,36 +1,32 @@
-FROM serversideup/php:8.3-fpm-nginx AS base
+# PHP Service
+FROM php:8.1-fpm as php
 
-# Switch to root so we can do root things
-USER root
+# Install dependencies
+RUN apt-get update -y && apt-get install -y \
+    unzip libpq-dev libcurl4-gnutls-dev git \
+    && docker-php-ext-install pdo pdo_mysql bcmath
 
-# Install the exif extension with root permissions
-RUN install-php-extensions exif
+# Install Redis PHP extension
+RUN pecl install redis && docker-php-ext-enable redis
 
-# Install JavaScript dependencies
-ARG NODE_VERSION=20.18.0
-ENV PATH=/usr/local/node/bin:$PATH
-RUN curl -sL https://github.com/nodenv/node-build/archive/master.tar.gz | tar xz -C /tmp/ && \
-    /tmp/node-build-master/bin/node-build "${NODE_VERSION}" /usr/local/node && \
-    corepack enable && \
-    rm -rf /tmp/node-build-master
+# Set working directory
+WORKDIR /var/www
+COPY . .
 
-# Drop back to our unprivileged user
-USER www-data
+# Install Composer
+COPY --from=composer:2.3.5 /usr/bin/composer /usr/bin/composer
 
-FROM base
+# Expose port
+ENV PORT=8000
+ENTRYPOINT ["docker/entrypoint.sh"]
 
-ENV SSL_MODE="off"
-ENV AUTORUN_ENABLED="true"
-ENV PHP_OPCACHE_ENABLE="1"
-ENV HEALTHCHECK_PATH="/up"
+# ===================================================
+# Node Service
+FROM node:14-alpine as node
 
-# Copy the app files...
-COPY --chown=www-data:www-data . /var/www/html
+WORKDIR /usr/src/app
+COPY . .
 
-# Re-run install, but now with scripts and optimizing the autoloader (should be faster)...
-RUN composer install --no-interaction --prefer-dist --optimize-autoloader
+RUN npm install --global cross-env && npm install
 
-# Precompiling assets for production
-RUN yarn install --immutable && \
-    yarn build && \
-    rm -rf node_modules
+VOLUME /usr/src/app/node_modules
