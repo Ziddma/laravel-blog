@@ -36,3 +36,13 @@ RUN yarn install --frozen-lockfile && yarn build
 
 VOLUME /var/www/node_modules
 
+
+# ===================================================
+# Nginx Service
+FROM nginx:latest as proxy
+
+# Copy nginx configuration files
+COPY ./config/*.conf /etc/nginx/conf.d/
+
+# Create directory for logs
+RUN mkdir -p /var/log/nginx

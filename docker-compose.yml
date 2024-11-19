@@ -52,5 +52,21 @@ services:
             - .:/var/www
         tty: true
 
+    # Reverse Proxy Service
+    proxy:
+        build:
+            context: .
+            target: proxy
+        volumes:
+            - ./config:/etc/nginx/conf.d
+            - ./log:/var/log/nginx
+        ports:
+            - 80:80
+        depends_on:
+            - php
+            
 volumes:
     db-data:
+
+
+
