@@ -1,32 +1,40 @@
 # PHP Service
-FROM php:8.1-fpm as php
+FROM php:8.3-fpm as php
 
-# Install dependencies
 RUN apt-get update -y && apt-get install -y \
     unzip libpq-dev libcurl4-gnutls-dev git \
-    && docker-php-ext-install pdo pdo_mysql bcmath
+    zip libzip-dev \
+    libexif-dev \
+    && docker-php-ext-install pdo pdo_mysql bcmath zip exif
 
-# Install Redis PHP extension
+
 RUN pecl install redis && docker-php-ext-enable redis
 
-# Set working directory
 WORKDIR /var/www
 COPY . .
 
-# Install Composer
 COPY --from=composer:2.3.5 /usr/bin/composer /usr/bin/composer
 
-# Expose port
+
 ENV PORT=8000
 ENTRYPOINT ["docker/entrypoint.sh"]
 
+
+
 # ===================================================
 # Node Service
-FROM node:14-alpine as node
+FROM node:18-alpine as node
 
-WORKDIR /usr/src/app
+
+RUN corepack enable \
+    && corepack prepare yarn@4.5.1 --activate
+
+
+WORKDIR /var/www
+
 COPY . .
 
 RUN npm install --global cross-env && npm install
 
 VOLUME /usr/src/app/node_modules
+

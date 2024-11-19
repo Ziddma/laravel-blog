@@ -33,8 +33,6 @@ services:
             - 3306:3306
         environment:
             MYSQL_DATABASE: ${DB_DATABASE}
-            MYSQL_USER: ${DB_USERNAME}
-            MYSQL_PASSWORD: ${DB_PASSWORD}
             MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
         volumes:
             - db-data:/var/lib/mysql
@@ -45,7 +43,7 @@ services:
         command: redis-server --appendonly yes --requirepass "${REDIS_PASSWORD}"
         ports:
             - 6379:6379
-
+            
     # Node Service
     node:
         build:
@@ -55,8 +53,8 @@ services:
             NODE_ENV: development
         working_dir: /var/www
         volumes:
-            - .:/usr/src/app
-            - ./node_modules:/usr/src/app/node_modules
+            - .:/var/www
+            - ./var/www/node_modules
         tty: true
 
 volumes:
